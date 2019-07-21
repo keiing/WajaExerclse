@@ -169,4 +169,16 @@
     我们知道我们用的全局变量也相当于 window 对象上的一个属性，
     这里用defineProperty 定义了 a的 get 也使得其动态返回值。和with 有一些类似。
     */
+
+
+    //7.18 请使用原型链相关知识实现b继承n=1;c继承n=2;m=3;
+    var Obj = function () { }
+    Obj.prototype.n = 1;
+    var b = new Obj();
+    Obj.prototype = {
+        n: 2,
+        m: 3
+    }
+    var c = new Obj();
+    console.log(b.n, c.n, c.m)
 </script>
