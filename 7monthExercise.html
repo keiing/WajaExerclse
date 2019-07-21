@@ -1,0 +1,172 @@
+<script>
+    // 1.0
+    function test(x, y, z) {
+        console.log(test.length);//3
+        console.log(arguments.length);//2
+        console.log(arguments.callee === test)//true
+        console.log(arguments[2])//undefined
+    }
+    test(10, 20)
+    /*
+    7.10【每日一题】
+    答案：3 2 true undefined
+    解析：
+    1-. test.length是返回的函数的形参个数，所以为3；
+    2-. arguments.length返回的是函数调用时的实参个数，所以为2；
+
+    3-. arguments.callee:初始值就是正被执行的 Function 对象,用于在函数内部调用自身，arguments对象本身是个由函数调用时传入的实参组成的伪数组，访问单个参数的方式与访问数组元素的方式相同。
+
+    4-. 只传入了两个参数，自然为undefined.
+    */
+    //1.1
+    var a = 10;
+    a.pro = 10;
+    console.log(a.pro + a);//NaN;
+    //  undefined+10=NaN
+    var s = 'hello';
+    s.pro = 'world';
+    console.log(s.pro + s);//'undefinedhellow'
+    // undefined+'hello'='undefinedhellow'
+    // 我的理解
+    /*
+    1-. console.log(typeof a)//number
+    每当对原始类型的值调用方法都会自动创建包装类型
+    new Number(10).pro=10;
+    因为没有变量接，number事情做完就自动释放了
+    console.log(a.pro+a)
+    这里又new Number(10).pro一次
+    返回了undefined
+    undefined+10=NaN
+    2-. 第二题是任何类型和字符串相加都会变成拼接
+    */
+
+    /*
+    答案：NaN undefinedhello
+    解析：JavaScript引擎内部在处理对某个基本类型
+    a进行形如a.pro的操作时，会在内部临时创建一个对应的包装类型(对数字类型来说就是Number类型)的临时对象，
+    并把对基本类型的操作代理到对这个临时对象身上，
+    使得对基本类型的属性访问看起来像对象一样。
+    但是在操作完成后，临时对象就销毁了，
+    下次再访问时，会重新建立临时对象，
+    当然就会返回undefined了
+    */
+
+    var f1 = 1;
+    if (!f1) {
+        var a = 10
+    }
+    function fn() {
+        var b = 30;
+        c = 30;
+    }
+    fn()
+    console.log(a);//undefined
+    // console.log(c);//30
+    // console.log(b);//is not defined报错
+    /*
+    答案:undefined 30 notDefined(报错)
+    解析
+    1-.if没有作用域
+    var a声明提前 所以没有报错是undefined
+    2-.函数内未声明直接赋值会自动在全局创建该变量 c是30
+    3-.函数内声明的局部变量，函数运行完毕会释放掉了而window中并没有找到b这个变量所以会报错
+    */
+
+    //7.15 
+    var length = 10;
+    function fn() {
+        console.log(this.length);
+    }
+    var obj = {
+        length: 5,
+        methods: function (fn) {
+            fn();//10 自身自调用 this指向window
+            arguments[0]();//2
+        },
+    };
+    /*
+    obj.methods(fn);
+    答案:10,2
+    第一次输出10 这里的this指向window
+    第二个调用arguments[0]() this指向arguments 所以输出arguments的下标长度
+    */
+
+    //7.16
+    function fn(a) {
+        console.log(a);//f a(){}
+        var a = 2;
+        function a() { }
+        console.log(a);//2
+    }
+    /*
+    答案：f a() {} ,2
+    解析：我们知道预解析阶段，变量声明和函数声明会提前，且变量名和函数名同名时，
+    函数优先级高于变量，会覆盖变量，因此第一个输出的是f a(){ }，继续执行，会执行a=2，
+    再输出的时候就会输出2，不理解的同学百度一下变量提升和函数提升
+    */
+
+    //7.17
+    // var a=?
+    // var a = { i: 1, toString() { return this.i++ } }
+    if (a == 1 && a == 2 & a == 3) {
+        console.log(a)
+        console.log("hellow wordls");
+    }
+    /*
+    答案不唯一
+    参考答案：
+    1-1-1. var a = {i: 1 ,toString(){return a.i++;}}
+    1-1-2. a = {i: 0, valueOf(){return ++this.i}}
+    1-1-3. a.valueOf=function(){reutrn this.num+=1}
+    如果原始类型的值和对象比较，对象会转为原始类型的值，再进行比较
+    a                     == 1   ->
+    a.valueOf()           == 1   ->
+    a.num += 1            == 1   ->
+    0     += 1            == 1   ->
+    1                     == 1   -> true
+    a                     == 2   ->
+    a.valueOf()           == 2   ->
+    a.num += 1            == 2   ->
+    1     += 1            == 2   ->
+    2                     == 2   -> true
+    a                     == 3   ->
+    a.valueOf()           == 3   ->
+    a.num += 1            == 3   ->
+    2     += 1            == 3   ->
+    3                     == 3   -> true
+
+
+    1-1-3. 1-2. var a = [1, 2, 3];a.join = a.shift
+    可以看到数组 toString 会调用本身的 join 方法，
+    这里把自己的join方法该写为shift,每次返回第一个元素，
+    而且原数组删除第一个值，正好可以使判断成立。这里 == 比较也带来的副作用
+
+    解析：==比较的时候类型不一样会转换类型，
+    Object类型会调用toString，array调用join，number调用valueOf，
+    答案为重写Object的toString的方式。
+
+    1-2. let a = {[Symbol.toPrimitive]: ((i) => () => ++i) (0)};
+    ES6 引入了一种新的原始数据类型Symbol，表示独一无二的值。
+    我们之前在定义类的内部私有属性时候习惯用 __xxx ,这种命名方式避免别人定义相同的属性名覆盖原来的属性，
+    有了 Symbol  之后我们完全可以用 Symbol值来代替这种方法，而且完全不用担心被覆盖。
+
+    1-3. 利用with 关键字
+    var i = 0;
+    with({
+    get a() { 每次调用a读取 i的值
+        return ++i;
+    }
+    })
+    with 也是被严重建议不使用的对象，这里也是利用它的特性在代码块里面利用对象的 get 方法动态返回 i
+
+    1-4. 和with类似修改window的get方法
+    var val=0;
+    object.defineProperty(window,'a',{
+        get:function(){
+            return ++val;
+        }
+    });
+    我们知道我们用的全局变量也相当于 window 对象上的一个属性，
+    这里用defineProperty 定义了 a的 get 也使得其动态返回值。和with 有一些类似。
+    */
+</script>
