@@ -181,4 +181,105 @@
     }
     var c = new Obj();
     // console.log(b.n, c.n, c.m)
+
+    //7.22 
+    var a = 1 < 2 < 1 < 1 ? 3 : 4; //1<2 =flase <1 =true<1 =false  //所以为4
+    var b = 3 < 2 < 1 < 2 ? 2 : 1; //3<2 =false <1 =true <2 =true //说以为2;
+    console.log(a);//3
+    console.log(b);//2
+    /*
+    答案: 3 2
+    解析:大于小于运算符优先级高于三目运算符，且从左往右执行a的执行顺序:
+    第一步 1<2 为 true
+    这时 true 会转换为1，false 会转换为0进行比较
+    第二部 true<1 = 1<1  ==false;
+    第三步:false<1,结果是true 因此a为3
+    b同理与a，结果为2
+    */
+
+    //7.23 编写一个程序将数组扁平化并除去其中重复的部分，最终得到一个升序且不重复的数组
+    var arr = [[11, 22, 22], [13, 14, 15, 15], [16, 17, 18, 19, [11, 12, [12, 13, 14]]], 12]
+    var newArr = Array.from(new Set(arr.flat(Infinity))).sort((a, b) => a - b);
+    console.log(newArr)
+    /*
+    方法1.flat方法接受一个参数n，可以将深度为n的数组扁平化，
+    然后出重并排序，出重可以用set，排序用sort
+
+    方法2.当然也可以使用递归，或者封装function等方法;
+    */
+
+    //7.24 实现一个函数add 满足下列输出结果
+    /* 方法1 但是严格模式不适用
+        var add = function () {
+            var args = [...arguments];
+            var fn = function () {
+                args.push(...arguments);
+                return fn;
+            }
+            fn.toString = function () {
+                return args.reduce((x, y) => x + y);
+            }
+            return fn;
+        }
+    */
+    var add = function (...n) {
+        var arr = [...n];
+        // console.log([...n].reduce((prev, val) => prev + val))
+        var fn = function (...c) {
+            for (let i = 0; i < [...c].length; i++) {
+                arr.push([...c][i]);
+            }
+            return fn;
+        }
+        fn.toString = function () {
+            return arr.reduce((prev, val) => prev + val)
+        }
+        return fn;
+    }
+    console.log(add(1));//1
+    console.log(add(1)(2));//3
+    console.log(add(1)(2, 3)(3, 3));//6
+    console.log(add(1)(2, 3));//6
+    console.log(add(1, 2)(3));//6
+    console.log(add(1, 2, 3));//6
+    //7.25 打印结果
+    function Foo() {
+        getName = function () {
+            console.log(1);
+        }
+        return this;
+
+    }
+    Foo.getName = function () { console.log(2); }
+    Foo.prototype.getName = function () { console.log(3); }
+    function getName() { console.log(5); }
+    var getName = function () { console.log(4); }
+    Foo.getName();//2
+    getName();//4
+    Foo().getName();//1
+    getName();//1
+    new Foo.getName();//2
+    new Foo().getName();//3
+    new new Foo().getName();//3
+    /*
+    解析：
+    1. Foo.getName 自然是访问Foo函数上储存的静态属性，自然是2
+    2. 函数表达式覆盖函数声明，因此调用的是被覆盖后的getName函数，因此是4
+    3.先执行Foo函数，然后调用Foo函数的返回值对象getName属性函数。
+    Foo函数的第一句getName=function(){console.log(1);}是一句函数赋值语句，注意他没有var声明
+    也就是第二问中的alert(4)函数，将次变量的值赋值为function(){console.log(1);}
+    此处实际上是将外层作用域内的getName函数修改了.
+    之后Foo函数的返回值是this，此处this指向window对象。因此是1.
+    4.直接调用getName函数，相当于window.getName()，因为这个变量已经被Foo函数执行时修改了，所以结果与第三问相同，为1,。
+    也就是说Foo执行后把全局的getName函数重写了一次，所以结果就是Foo()执行重写的那个getName函数.
+    5.new Foo.getName();此处考查的是js的运算符优先级问题，因为点运算符的优先局高于new操作，遂相当于是:
+    new (Foo.getName)();说以实际上将getName函数作为了函数构造函数来执行，遂弹出2；
+    6.new Foo()。getName()；根据运算符优先级，实际执行了(new Foo()).getName()
+    遂先执行Foo函数，Foo此时作为构造函数却有返回值，返回的是this，
+    而this在构造函数中本来就代表当前实例化对象，遂最终Foo函数返回实例化对象。
+    之后调用实例化对象的getName函数，因为在Foo构造函数中没有为实例化对象添加任何属性，
+    遂到当前对象的原型对象(prototype)中寻找getName，找到了。遂最终输出3。
+    7.new new Foo().getName();同样是运算符优先级问题。最终实际执行为：
+    new((new Foo()).getName)();先初始化Foo的实例化对象，然后将其原型上的getName函数作为构造函数再次new。遂最终结果为3
+    */
 </script>
